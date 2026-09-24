@@ -4,6 +4,9 @@
 # Saved Terraform execution plans
 *.tfplan
 
+tfplan
+
+
 # Terraform state files
 *.tfstate
 *.tfstate.*
