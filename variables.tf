@@ -68,7 +68,7 @@ variable "product_image_tag" {
   # Docker tag used by the Product Service image.
   description = "Docker image tag for Product Service"
   type        = string
-  default     = "latest"
+  # default     = "latest"
 }
 
 
@@ -76,7 +76,7 @@ variable "order_image_tag" {
   # Docker tag used by the Order Service image.
   description = "Docker image tag for Order Service"
   type        = string
-  default     = "latest"
+  # default     = "latest"
 }
 
 
@@ -84,29 +84,55 @@ variable "inventory_image_tag" {
   # Docker tag used by the Inventory Service image.
   description = "Docker tag used by Inventory Service"
   type        = string
-  default     = "latest"
+  # default     = "latest"
 }
 
 
 # ------------------------------------------------------------
 # ECS Task CPU and Memory
 # ------------------------------------------------------------
-# Fargate task CPU and memory can be changed without changing
-# the task-definition code.
+# Service-specific task sizing for the development environment.
 
-variable "ecs_task_cpu" {
-  # 256 CPU units = 0.25 vCPU.
-  description = "CPU units for ECS Fargate tasks"
+variable "product_ecs_task_cpu" {
+  description = "CPU units for Product ECS task"
+  type        = number
+  default     = 512
+}
+
+variable "product_ecs_task_memory" {
+  description = "Memory in MiB for Product ECS task"
+  type        = number
+  default     = 1024
+}
+
+variable "order_ecs_task_cpu" {
+  description = "CPU units for Order ECS task"
+  type        = number
+  default     = 512
+}
+
+variable "order_ecs_task_memory" {
+  description = "Memory in MiB for Order ECS task"
+  type        = number
+  default     = 1024
+}
+
+variable "inventory_ecs_task_cpu" {
+  description = "CPU units for Inventory ECS task"
   type        = number
   default     = 256
 }
 
-
-variable "ecs_task_memory" {
-  # 512 MB memory.
-  description = "Memory in MB for ECS Fargate tasks"
+variable "inventory_ecs_task_memory" {
+  description = "Memory in MiB for Inventory ECS task"
   type        = number
   default     = 512
+}
+
+variable "fargate_platform_version" {
+  description = "AWS Fargate Linux platform version for ECS services"
+  type        = string
+  default     = "1.4.0"
 }
 
 
@@ -134,6 +160,37 @@ variable "order_desired_count" {
 variable "inventory_desired_count" {
   # Number of Inventory Service tasks.
   description = "Desired number of Inventory Service ECS tasks"
+  type        = number
+  default     = 1
+}
+
+# ------------------------------------------------------------
+# RDS Instance Class
+# ------------------------------------------------------------
+
+variable "rds_instance_class" {
+  description = "RDS PostgreSQL instance class"
+  type        = string
+  default     = "db.t3.micro"
+}
+# ------------------------------------------------------------
+# Outbox Publisher ECS Worker
+# ------------------------------------------------------------
+
+variable "order_publisher_ecs_task_cpu" {
+  description = "CPU units for Order Outbox Publisher ECS task"
+  type        = number
+  default     = 256
+}
+
+variable "order_publisher_ecs_task_memory" {
+  description = "Memory in MiB for Order Outbox Publisher ECS task"
+  type        = number
+  default     = 512
+}
+
+variable "order_publisher_desired_count" {
+  description = "Desired number of Order Outbox Publisher ECS tasks"
   type        = number
   default     = 1
 }

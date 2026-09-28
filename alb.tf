@@ -77,8 +77,8 @@ resource "aws_lb_target_group" "product" {
   protocol = "HTTP"
 
   health_check {
-    # Product service health endpoint.
-    path = "/health"
+    # Product service readiness endpoint.
+    path = "/ready"
 
     protocol = "HTTP"
     matcher  = "200"
@@ -161,7 +161,7 @@ resource "aws_lb_target_group" "inventory" {
 
   health_check {
     # Your Inventory API already has GET /health.
-    path = "/health"
+    path = "/ready"
 
     protocol = "HTTP"
     matcher  = "200"
@@ -235,6 +235,7 @@ resource "aws_lb_listener_rule" "product" {
   condition {
     path_pattern {
       values = [
+        "/products",
         "/products/*"
       ]
     }
@@ -265,6 +266,7 @@ resource "aws_lb_listener_rule" "order" {
   condition {
     path_pattern {
       values = [
+        "/orders",
         "/orders/*"
       ]
     }
@@ -295,6 +297,7 @@ resource "aws_lb_listener_rule" "inventory" {
   condition {
     path_pattern {
       values = [
+        "/inventory",
         "/inventory/*"
       ]
     }

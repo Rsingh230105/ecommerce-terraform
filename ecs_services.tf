@@ -38,7 +38,8 @@ resource "aws_ecs_service" "product" {
   desired_count = var.product_desired_count
 
   # Use AWS Fargate instead of managing EC2 servers.
-  launch_type = "FARGATE"
+  launch_type      = "FARGATE"
+  platform_version = var.fargate_platform_version
 
   # Give the Product container time to become healthy
   # before ECS starts treating health-check failures seriously.
@@ -69,6 +70,21 @@ resource "aws_ecs_service" "product" {
 
     # Do NOT assign public IP addresses.
     assign_public_ip = false
+  }
+
+  service_connect_configuration {
+    enabled   = true
+    namespace = aws_service_discovery_http_namespace.service_connect.arn
+
+    service {
+      port_name      = "http"
+      discovery_name = "product-service"
+
+      client_alias {
+        dns_name = "product-service"
+        port     = var.product_service_port
+      }
+    }
   }
 
   # ----------------------------------------------------------
@@ -119,7 +135,8 @@ resource "aws_ecs_service" "order" {
   desired_count = var.order_desired_count
 
   # Use AWS Fargate.
-  launch_type = "FARGATE"
+  launch_type      = "FARGATE"
+  platform_version = var.fargate_platform_version
 
   # Give the application time to start.
   health_check_grace_period_seconds = 60
@@ -151,6 +168,11 @@ resource "aws_ecs_service" "order" {
     assign_public_ip = false
   }
 
+  service_connect_configuration {
+    enabled   = true
+    namespace = aws_service_discovery_http_namespace.service_connect.arn
+  }
+
   # ----------------------------------------------------------
   # ALB Connection
   # ----------------------------------------------------------
@@ -169,7 +191,8 @@ resource "aws_ecs_service" "order" {
 
   # ALB listener must exist first.
   depends_on = [
-    aws_lb_listener.http
+    aws_lb_listener.http,
+    aws_ecs_service.product
   ]
 
   tags = {
@@ -199,7 +222,8 @@ resource "aws_ecs_service" "inventory" {
   desired_count = var.inventory_desired_count
 
   # Use AWS Fargate.
-  launch_type = "FARGATE"
+  launch_type      = "FARGATE"
+  platform_version = var.fargate_platform_version
 
   # Allow Inventory API time to pass health checks.
   health_check_grace_period_seconds = 60
@@ -256,5 +280,38 @@ resource "aws_ecs_service" "inventory" {
     Project     = var.project_name
     Environment = var.environment
     Service     = "inventory"
+  }
+}
+# ------------------------------------------------------------
+# Order Outbox Publisher ECS Service
+# ------------------------------------------------------------
+
+resource "aws_ecs_service" "order_publisher" {
+  name            = "${var.project_name}-${var.environment}-order-publisher"
+  cluster         = aws_ecs_cluster.main.id
+  task_definition = aws_ecs_task_definition.order_publisher.arn
+
+  desired_count = var.order_publisher_desired_count
+
+  launch_type      = "FARGATE"
+  platform_version = var.fargate_platform_version
+
+  network_configuration {
+    subnets = [
+      aws_subnet.private_1.id,
+      aws_subnet.private_2.id
+    ]
+
+    security_groups = [
+      aws_security_group.ecs.id
+    ]
+
+    assign_public_ip = false
+  }
+
+  tags = {
+    Project     = var.project_name
+    Environment = var.environment
+    Service     = "order-publisher"
   }
 }

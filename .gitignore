@@ -25,3 +25,6 @@ override.tf.json
 
 # Sensitive local files
 .env
+# Private keys
+*.pem
+*.key

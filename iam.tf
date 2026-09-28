@@ -12,7 +12,7 @@
 #
 # 2. ECS Application Task Roles
 #    → Used by application code inside containers.
-#    → Product    → S3 access
+#    → Product    → no AWS data-plane permissions required today
 #    → Order      → SNS publish access
 #    → Inventory  → SQS consume access
 #
@@ -84,7 +84,7 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution" {
 # ------------------------------------------------------------
 # This role is available only to the Product Service container.
 #
-# S3 permissions will be attached in iam_policies.tf.
+# No additional AWS permissions are required for the current Product Service implementation.
 
 resource "aws_iam_role" "product_task" {
   # Unique Product Service task role.

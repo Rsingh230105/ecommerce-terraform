@@ -154,6 +154,19 @@ resource "aws_vpc_security_group_ingress_rule" "product_from_alb" {
   description = "Allow Product Service traffic from ALB"
 }
 
+resource "aws_vpc_security_group_ingress_rule" "ecs_service_connect_product" {
+  security_group_id = aws_security_group.ecs.id
+
+  ip_protocol = "tcp"
+
+  from_port = var.product_service_port
+  to_port   = var.product_service_port
+
+  referenced_security_group_id = aws_security_group.ecs.id
+
+  description = "Allow ECS tasks to reach Product Service through Service Connect"
+}
+
 
 # ------------------------------------------------------------
 # ALB -> Order ECS :8001
@@ -400,4 +413,17 @@ resource "aws_vpc_security_group_egress_rule" "ecs_to_rds" {
   referenced_security_group_id = aws_security_group.rds.id
 
   description = "Allow ECS tasks to connect to RDS PostgreSQL"
+}
+
+resource "aws_vpc_security_group_egress_rule" "ecs_service_connect_product" {
+  security_group_id = aws_security_group.ecs.id
+
+  ip_protocol = "tcp"
+
+  from_port = var.product_service_port
+  to_port   = var.product_service_port
+
+  referenced_security_group_id = aws_security_group.ecs.id
+
+  description = "Allow ECS Service Connect traffic to Product Service"
 }

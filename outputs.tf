@@ -257,13 +257,6 @@ output "inventory_task_role_arn" {
 }
 
 
-output "product_s3_policy_arn" {
-  # Policy that gives Product Service access to product media.
-  description = "ARN of the Product Service S3 policy"
-  value       = aws_iam_policy.product_s3.arn
-}
-
-
 output "order_sns_publish_policy_arn" {
   # Policy that allows Order Service to publish order events.
   description = "ARN of the Order Service SNS publish policy"
