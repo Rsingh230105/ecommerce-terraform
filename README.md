@@ -77,7 +77,7 @@ Application tasks are configured for private subnets with public IP assignment d
 
 Run commands from this directory. Use the same AWS account, region, and state backend as the deployment being managed.
 
-The current root uses local state until the state bucket has been deliberately bootstrapped. Do not plan/apply production with local state. The `bootstrap/state/` configuration is code only: select a globally unique bucket name, review its plan, then have a human operator apply it. Afterward, activate `backend.tf.example` as `backend.tf`, create private dev/prod `.hcl` files from the examples with the actual bucket name, and migrate/reconfigure state deliberately. The backend config files are ignored by Git.
+The protected remote-state bucket has been bootstrapped for this development environment. Its private backend configuration is local and ignored by Git; confirm `terraform init` selects the intended S3 backend and `aws sts get-caller-identity` returns the expected account before any plan or apply. Do not plan/apply production with dev state. For a new environment, the `bootstrap/state/` configuration is code only: select a globally unique bucket name, review its plan, then have a human operator apply it. Afterward, activate `backend.tf.example` as `backend.tf`, create private dev/prod `.hcl` files from the examples with the actual bucket name, and migrate/reconfigure state deliberately. The backend config files are ignored by Git.
 
 Use separate state keys and explicit environment files. Example commands after backend setup:
 
@@ -115,6 +115,25 @@ Useful checks after applying include `terraform state list`, `terraform output`,
 After a successful apply, Terraform prints `application_base_url`, `product_service_url`, `order_service_url`, and `inventory_service_url`. These use the ALB's generated DNS name, so a custom domain is not needed for development. The service URLs point to the API path prefixes and can be used with a browser or API client. Re-run `terraform output` later to retrieve them.
 
 Terraform provisions the ECR repositories but does not build or push Docker images. Before creating ECS services, the selected immutable image tags must already exist in those repositories; otherwise tasks cannot start and the apply may fail while waiting for service stability. A fully automated build-and-deploy flow needs a CI/CD runner with AWS OIDC permissions and Docker builds; it is not performed by a plain `terraform apply`.
+
+## Publish images before the development stack
+
+Because the service ECR repositories do not exist yet, bootstrap only the ECR module first. From this directory, confirm the AWS account and region, then create and inspect a fresh targeted plan:
+
+```powershell
+aws sts get-caller-identity
+terraform plan -input=false -target module.ecr -var-file .\terraform.tfvars
+```
+
+The current S3-backed development plan was reviewed and proposed **4 creates, 0 changes, and 0 destroys**: the three ECR repositories and the existing Product repository lifecycle policy. The Order and Inventory repositories currently have no lifecycle policy. Terraform warns that `-target` is exceptional and may omit unrelated configuration; use it only for this bootstrap, not routine full-stack deployment.
+
+Only after reviewing the plan and confirming the intended AWS account, region, state key, and ECR resource names, a human operator may apply the same targeted selection:
+
+```powershell
+terraform apply -target module.ecr -var-file .\terraform.tfvars
+```
+
+This creates ECR resources only; it does not deploy application infrastructure. After the repositories exist, merge and manually run each service's **Publish image to ECR (dev)** workflow from its `dev` branch. Set the per-repository `AWS_REGION` and `AWS_ECR_PUBLISH_ROLE_ARN` Actions variables, and configure a dedicated OIDC role scoped to that service's repository. Use new immutable version tags matching the image tags in `terraform.tfvars` (`v1.0.1`, `v1.0.3`, and `v1.0.4`). Verify all three tags exist in ECR, then generate and review a fresh full Terraform plan. The current empty dev stack plan proposes 82 creates; do not apply that full plan without a separate cost and change review.
 
 ## Cost and deletion considerations
 
