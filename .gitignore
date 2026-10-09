@@ -16,6 +16,8 @@ crash.*.log
 # Terraform variable files
 # Keep local variable values out of Git.
 terraform.tfvars
+environments/*.tfvars
+environments/*.hcl
 
 # Terraform override files
 override.tf

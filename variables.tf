@@ -21,6 +21,25 @@ variable "environment" {
 
   type    = string
   default = "dev"
+
+  validation {
+    condition     = contains(["dev", "prod"], var.environment)
+    error_message = "environment must be either dev or prod; use a separately reviewed configuration for other environments."
+  }
+}
+
+variable "acm_certificate_arn" {
+  description = "ACM certificate ARN in the selected AWS region; required for production"
+  type        = string
+  default     = ""
+
+  validation {
+    condition = var.environment != "prod" || (
+      can(regex("^arn:aws(-[a-z]+)?:acm:[a-z0-9-]+:[0-9]{12}:certificate/[A-Za-z0-9-]+$", var.acm_certificate_arn)) &&
+      try(split(":", var.acm_certificate_arn)[3], "") == var.aws_region
+    )
+    error_message = "Production requires a valid ACM certificate ARN in the configured AWS region. Obtain and DNS-validate the certificate before planning production."
+  }
 }
 
 
@@ -69,6 +88,11 @@ variable "product_image_tag" {
   description = "Docker image tag for Product Service"
   type        = string
   # default     = "latest"
+
+  validation {
+    condition     = length(trimspace(var.product_image_tag)) > 0 && !startswith(var.product_image_tag, "REPLACE_")
+    error_message = "Set product_image_tag to an image tag that has been built and pushed to ECR."
+  }
 }
 
 
@@ -77,6 +101,11 @@ variable "order_image_tag" {
   description = "Docker image tag for Order Service"
   type        = string
   # default     = "latest"
+
+  validation {
+    condition     = length(trimspace(var.order_image_tag)) > 0 && !startswith(var.order_image_tag, "REPLACE_")
+    error_message = "Set order_image_tag to an image tag that has been built and pushed to ECR."
+  }
 }
 
 
@@ -85,6 +114,11 @@ variable "inventory_image_tag" {
   description = "Docker tag used by Inventory Service"
   type        = string
   # default     = "latest"
+
+  validation {
+    condition     = length(trimspace(var.inventory_image_tag)) > 0 && !startswith(var.inventory_image_tag, "REPLACE_")
+    error_message = "Set inventory_image_tag to an image tag that has been built and pushed to ECR."
+  }
 }
 
 
