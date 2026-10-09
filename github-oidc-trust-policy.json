@@ -1,0 +1,24 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "GitHubActionsDevBranches",
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "arn:aws:iam::293162038381:oidc-provider/token.actions.githubusercontent.com"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "StringEquals": {
+          "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
+          "token.actions.githubusercontent.com:sub": [
+            "repo:Rsingh230105/ecommerce-product-service:ref:refs/heads/dev",
+            "repo:Rsingh230105/ecommerce-order-service:ref:refs/heads/dev",
+            "repo:Rsingh230105/ecommerce-inventory-service:ref:refs/heads/dev",
+            "repo:Rsingh230105/ecommerce-terraform:ref:refs/heads/dev"
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+aws_region          = "ap-south-1"
+project_name        = "ecommerce"
+environment         = "prod"
+
+# Replace these with immutable release tags that have been pushed to ECR.
+product_image_tag   = "REPLACE_WITH_RELEASE_TAG"
+order_image_tag     = "REPLACE_WITH_RELEASE_TAG"
+inventory_image_tag = "REPLACE_WITH_RELEASE_TAG"
+
+# Choose this after workload sizing and cost review.
+rds_instance_class = "db.t4g.medium"
+
+# Production API services require at least two tasks each.
+product_desired_count   = 2
+order_desired_count     = 2
+inventory_desired_count = 2
+
+# The publisher is a single worker until concurrent outbox claiming
+# has been verified safe by application-level tests.
+order_publisher_desired_count = 1
+
+# Required before a production plan. Obtain and DNS-validate the ACM
+# certificate in ap-south-1 after registering a domain.
+acm_certificate_arn = ""

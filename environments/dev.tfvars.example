@@ -1,0 +1,7 @@
+aws_region          = "ap-south-1"
+project_name        = "ecommerce"
+environment         = "dev"
+product_image_tag   = "v1.0.1"
+order_image_tag     = "v1.0.3"
+inventory_image_tag = "v1.0.4"
+rds_instance_class  = "db.t3.micro"
